@@ -32,3 +32,11 @@ class LoginForm(Form):
     password = PasswordField('Password', validators=[Required()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
+
+
+class ChangePasswordForm(Form):
+    old_password = PasswordField('Old Password', validators=[Required()])
+    password = PasswordField('New password', validators=[
+        Required(), EqualTo('password2', message='Password must match!')])
+    password2 = PasswordField('Confirm new password', validators=[Required()])
+    submit = SubmitField('Update Password')

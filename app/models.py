@@ -1,16 +1,9 @@
 # coding: utf-8
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask import Flask
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask.ext.login import UserMixin
-from . import login_manager
+from . import login_manager, db
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
-
-app = Flask(__name__)
-
-
-db = SQLAlchemy(app)
 
 
 class Role(db.Model):
@@ -33,6 +26,17 @@ class User(UserMixin, db.Model):
 
     confirmed = db.Column(db.Boolean, default=False)
 
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'confirm': self.id})
@@ -49,20 +53,9 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute')
-
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
+    def __repr__(self):
+        return '<User %r>' % self.username
 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-
-    def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def __repr__(self):
-        return '<User %r>' % self.username

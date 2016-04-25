@@ -3,7 +3,7 @@ from flask.ext.login import login_user, current_user
 from flask.ext.login import logout_user, login_required
 from . import auth
 from ..models import User
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm
 from ..import db
 from ..email import send_mail
 
@@ -18,7 +18,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        send_mail(user.mail, 'Confirm Your Account',
+        send_mail(user.email, 'Confirm Your Account',
                   'auth/email/confirm', user=user, token=token)
         flash('A confirmation email has been sent to you by email.')
         flash('You can now login.')
@@ -59,7 +59,7 @@ def before_request():
 
 @auth.route('/unconfirmed')
 def unconfirmed():
-    if current_user.is_anonymous() or current_user.confirmed:
+    if current_user.is_anonymous or current_user.confirmed:
         return redirect(url_for('main.index'))
     return render_template('auth/unconfirmed.html')
 
@@ -68,7 +68,7 @@ def unconfirmed():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.first())
+        user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(request.args.get('next') or url_for('main.index'))
@@ -82,3 +82,18 @@ def logout():
     logout_user()
     flash('You have been logged out.')
     return redirect(url_for('main.index'))
+
+
+@auth.route('/change-password', methods=["POST", "GET"])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.old_password.data):
+            current_user.password.data = form.password.data
+            db.session.add(current_user)
+            flash('You have update your password just now!')
+            return redirect(url_for('main.index'))
+        else:
+            flash('Invalid password!')
+    return render_template('auth/change_password.html', form=form)

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Flasky -- You have logged your  account!{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+  <h1>
+      Hello,  {{ current_user.username}}!
+  </h1>
+  <h3>You have logged  your account .Congratulation! :) </h3>
+  <p>
+      This is your first step that you make a social working app!
+  </p>
+</div>
+{% endblock %}

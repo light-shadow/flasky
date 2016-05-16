@@ -4,7 +4,7 @@ from flask import current_app, render_template
 from . import mail
 
 
-def send_mail(to, subject, template, **kwargs):  # 为同步发邮件方式 TODO 后面要改为异步发送邮件的方式
+def send_email(to, subject, template, **kwargs):  # 为同步发邮件方式 TODO 后面要改为异步发送邮件的方式
     app = current_app._get_current_object()
     msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + ' ' + subject,
                   sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])

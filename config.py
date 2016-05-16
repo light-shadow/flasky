@@ -8,7 +8,6 @@ class Config:
     MAIL_SERVER = 'smtp.126.com'
     MAIL_PORT = 25
     MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
     MAIL_DEBUG = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')

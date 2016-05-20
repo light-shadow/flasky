@@ -1,15 +1,23 @@
 from flask import render_template, abort, flash, redirect, url_for
 from flask.ext.login import login_required, current_user
 from .import main
-from ..models import User, Role
+from ..models import User, Role, Perssion, Post
 from .. import db
-from .forms import EditProfileForm, EditProfileAdminForm
+from .forms import EditProfileForm, EditProfileAdminForm, PostForm
 from ..decorators import admin_required
 
 
-@main.route('/')
+@main.route('/', methods=['POST', 'GET'])
 def index():
-    return render_template('index.html')
+    form = PostForm()
+    if current_user.can(Perssion.WRITE_ARTICLES) and  \
+            form.validate_on_submit():
+        post = Post(body=form.body.data,
+                    author=current_user._get_current_object())
+        db.session.add(post)
+        return redirect(url_for('.index'))
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', form=form, posts=posts)
 
 
 @main.route('/user/<username>')

@@ -86,3 +86,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# mail and password hiden
+secret.py

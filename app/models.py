@@ -8,13 +8,21 @@ from flask import current_app, request
 from datetime import datetime
 
 
+class Permission:
+    FOLLOW = 0x01  # 定义关注用户
+    COMMENT = 0x02  # 发表评论
+    WRITE_ARTICLES = 0x04  # 写文章
+    MODERATE_COMMENTS = 0x08  # 管理他人发表的评论
+    ADMINISTER = 0x80  # 管理员权限
+
+
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')  # 在关系的另一个模型中添加反向引用
     default = db.Column(db.Boolean, default=False, index=True)  # 设置用户注册的默认角色
-    perssions = db.Column(db.Integer)  # 添加权限
+    permissions = db.Column(db.Integer)  # 添加权限
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -22,13 +30,13 @@ class Role(db.Model):
     @staticmethod  # 装饰器 不需要实例化 直接类名 函数名调用
     def insert_roles():
         roles = {
-            'User': (Perssion.FOLLOW |
-                     Perssion.COMMENT |
-                     Perssion.WRITE_ARTICLES, True),
-            'Moderator': (Perssion.FOLLOW |
-                          Perssion.COMMENT |
-                          Perssion.WRITE_ARTICLES |
-                          Perssion.MODERATE_COMMENTS, False),
+            'User': (Permission.FOLLOW |
+                     Permission.COMMENT |
+                     Permission.WRITE_ARTICLES, True),
+            'Moderator': (Permission.FOLLOW |
+                          Permission.COMMENT |
+                          Permission.WRITE_ARTICLES |
+                          Permission.MODERATE_COMMENTS, False),
             'Administrator': (0xff, False)
         }
         for r in roles:
@@ -39,14 +47,6 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
-
-
-class Perssion:
-    FOLLOW = 0x01  # 定义关注用户
-    COMMENT = 0x02  # 发表评论
-    WRITE_ARTICLES = 0x04  # 写文章
-    MODERATE_COMMENTS = 0x08  # 管理他人发表的评论
-    ADMINISTER = 0x80  # 管理员权限
 
 
 class User(UserMixin, db.Model):
@@ -147,7 +147,7 @@ class User(UserMixin, db.Model):
             (self.role.perssions & perssions) == perssions
 
     def is_administrator(self):
-        return self.can(Perssion.ADMINISTER)
+        return self.can(Permission.ADMINISTER)
 
     def ping(self):
         self.last_seen = datetime.utcnow()
@@ -168,7 +168,7 @@ class User(UserMixin, db.Model):
 
 
 class AnonymousUser(AnonymousUserMixin):
-    def can(self, perssions):
+    def can(self, permissions):
         return False
 
     def is_administrator(self):

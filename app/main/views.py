@@ -1,7 +1,7 @@
 from flask import render_template, abort, flash, redirect, url_for
 from flask.ext.login import login_required, current_user
 from .import main
-from ..models import User, Role, Perssion, Post
+from ..models import User, Role, Permission, Post
 from .. import db
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm
 from ..decorators import admin_required
@@ -10,7 +10,7 @@ from ..decorators import admin_required
 @main.route('/', methods=['POST', 'GET'])
 def index():
     form = PostForm()
-    if current_user.can(Perssion.WRITE_ARTICLES) and  \
+    if current_user.can(Permission.WRITE_ARTICLES) and  \
             form.validate_on_submit():
         post = Post(body=form.body.data,
                     author=current_user._get_current_object())

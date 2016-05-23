@@ -3,9 +3,9 @@ from flask import Blueprint
 main = Blueprint('main', __name__)
 
 from . import views, errors
-from ..models import Perssion
+from ..models import Permission
 
 
 @main.app_context_processor
 def inject_perssions():
-    return dict(Perssion=Perssion)
+    return dict(Permission=Permission)
